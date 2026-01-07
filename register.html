@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Carpool App</title>
+    <link rel="stylesheet" href="auth.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00d4ff;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        h2 i {
+            margin-right: 10px;
+            color: #00d4ff;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        label i {
+            margin-right: 8px;
+            color: #00d4ff;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #00d4ff;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        input.error {
+            border-color: #ff4757;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+        }
+
+        /* Phone and OTP input containers */
+        .phone-input-container,
+        .otp-input-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .phone-input-container input,
+        .otp-input-container input {
+            flex: 1;
+        }
+
+        .otp-btn {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .otp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .otp-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .otp-help-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            margin-top: 8px;
+            display: block;
+        }
+
+        .error-message {
+            color: #ff4757;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            display: none;
+            padding: 8px 12px;
+            background: rgba(255, 71, 87, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #ff4757;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 25px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-footer a {
+            color: #00d4ff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .form-footer a:hover {
+            color: #ffffff;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .form-container {
+                padding: 30px 25px;
+            }
+            
+            .phone-input-container,
+            .otp-input-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .otp-btn {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+
+        /* Animation for OTP group */
+        #otpGroup {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Success state for verified OTP */
+        .otp-verified {
+            border-color: #00ff88 !important;
+            background: rgba(0, 255, 136, 0.1) !important;
+        }
+
+        .otp-verified-btn {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%) !important;
+        }
+
+        /* Password visibility toggle */
+        .password-input-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .password-input-container input {
+            flex: 1;
+        }
+        .eye-btn {
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .eye-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h2><i class="fas fa-user-plus"></i> Register</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="fullname"><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" id="fullname" name="fullname" placeholder="Enter your full name" required>
+                    <div id="fullnameError" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <div class="phone-input-container">
+                        <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                        <button type="button" id="sendOtpBtn" class="otp-btn">Send OTP</button>
+                    </div>
+                    <div id="emailError" class="error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone"><i class="fas fa-phone"></i> Phone Number (Optional)</label>
+                    <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" placeholder="Enter 10-digit mobile number (optional)">
+                    <div id="phoneError" class="error-message"></div>
+                </div>
+                <div class="form-group" id="otpGroup" style="display: none;">
+                    <label for="otpCode"><i class="fas fa-key"></i> OTP Code</label>
+                    <div class="otp-input-container">
+                        <input type="text" id="otpCode" name="otpCode" placeholder="Enter 6-digit OTP" maxlength="6">
+                        <button type="button" id="verifyOtpBtn" class="otp-btn">Verify OTP</button>
+                    </div>
+                    <div id="otpError" class="error-message"></div>
+                    <small class="otp-help-text">Enter the 6-digit code sent to your phone number</small>
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="password" name="password" placeholder="Create a password" required>
+                        <button type="button" id="togglePassword" class="eye-btn" aria-label="Show password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="passwordError" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword"><i class="fas fa-lock"></i> Confirm Password</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                        <button type="button" id="toggleConfirmPassword" class="eye-btn" aria-label="Show confirm password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="confirmPasswordError" class="error-message"></div>
+                </div>
+                <button type="submit" class="btn">Register</button>
+            </form>
+            <p class="form-footer">Already have an account? <a href="login.html">Login here</a></p>
+        </div>
+    </div>
+
+
+
+    <script>
+        // Validation functions
+        function clearErrors() {
+            const fields = ['fullname','email','phone','password','confirmPassword','otpCode'];
+            fields.forEach((id) => {
+                const errEl = document.getElementById(`${id}Error`);
+                if (errEl) {
+                    errEl.textContent = '';
+                    errEl.style.display = 'none';
+                }
+                const inputEl = document.getElementById(id);
+                if (inputEl) inputEl.classList.remove('error');
+            });
+        }
+
+        function showError(fieldId, message) {
+            const el = document.getElementById(`${fieldId}Error`);
+            if (el) {
+                el.textContent = message;
+                el.style.display = 'block';
+            }
+            const inputEl = document.getElementById(fieldId);
+            if (inputEl) inputEl.classList.add('error');
+        }
+        const validators = {
+            fullname: (value) => {
+                if (!value) return 'Full name is required';
+                if (value.length < 2) return 'Full name must be at least 2 characters long';
+                if (!/^[a-zA-Z\s]{2,50}$/.test(value)) return 'Full name should only contain letters and spaces';
+                return '';
+            },
+            email: (value) => {
+                if (!value) return 'Email is required';
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) return 'Please enter a valid email address';
+                return '';
+            },
+
+            phone: (value) => {
+                // Phone is now optional
+                if (value && !/^\d{10}$/.test(value)) return 'Please enter a valid 10-digit phone number';
+                if (value && !/^[6-9]/.test(value)) return 'Phone number must start with 6, 7, 8, or 9 (Indian standard)';
+                return '';
+            },
+            password: (value) => {
+                if (!value) return 'Password is required';
+                if (value.length < 8) return 'Password must be at least 8 characters long';
+                if (!/[A-Z]/.test(value)) return 'Password must contain at least one uppercase letter';
+                if (!/[a-z]/.test(value)) return 'Password must contain at least one lowercase letter';
+                if (!/[0-9]/.test(value)) return 'Password must contain at least one number';
+                if (!/[!@#$%^&*]/.test(value)) return 'Password must contain at least one special character (!@#$%^&*)';
+                return '';
+            },
+            confirmPassword: (value, password) => {
+                if (!value) return 'Please confirm your password';
+                if (value !== password) return 'Passwords do not match';
+                return '';
+            }
+        };
+
+        // Function to validate a single field
+        function validateField(fieldId, value, password = '') {
+            const errorElement = document.getElementById(`${fieldId}Error`);
+            const inputElement = document.getElementById(fieldId);
+            const error = validators[fieldId](value, password);
+            
+            if (error) {
+                errorElement.textContent = error;
+                errorElement.style.display = 'block';
+                inputElement.classList.add('error');
+                return false;
+            } else {
+                errorElement.style.display = 'none';
+                inputElement.classList.remove('error');
+                return true;
+            }
+        }
+
+        // Add input event listeners for real-time validation
+        document.getElementById('fullname').addEventListener('input', (e) => {
+            validateField('fullname', e.target.value);
+        });
+
+        document.getElementById('email').addEventListener('input', (e) => {
+            validateField('email', e.target.value);
+        });
+
+
+
+        document.getElementById('phone').addEventListener('input', (e) => {
+            validateField('phone', e.target.value);
+        });
+
+        document.getElementById('password').addEventListener('input', (e) => {
+            validateField('password', e.target.value);
+            // Also validate confirm password when password changes
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (confirmPassword) {
+                validateField('confirmPassword', confirmPassword, e.target.value);
+            }
+        });
+
+        document.getElementById('confirmPassword').addEventListener('input', (e) => {
+            const password = document.getElementById('password').value;
+            validateField('confirmPassword', e.target.value, password);
+        });
+
+        // Password visibility toggles
+        function wirePasswordToggle(inputId, buttonId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(buttonId);
+            if (!input || !btn) return;
+            btn.addEventListener('click', () => {
+                const isPassword = input.getAttribute('type') === 'password';
+                input.setAttribute('type', isPassword ? 'text' : 'password');
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                }
+                btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+            });
+        }
+
+        wirePasswordToggle('password', 'togglePassword');
+        wirePasswordToggle('confirmPassword', 'toggleConfirmPassword');
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Reset previous errors
+            clearErrors();
+
+            const fullname = document.getElementById('fullname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validate all fields
+            const isFullnameValid = validateField('fullname', fullname);
+            const isEmailValid = validateField('email', email);
+            const isPhoneValid = validateField('phone', phone);
+            const isPasswordValid = validateField('password', password);
+            const isConfirmPasswordValid = validateField('confirmPassword', confirmPassword, password);
+
+            if (!isFullnameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+                return;
+            }
+
+            try {
+                console.log('Sending registration request...');
+                const requestBody = { fullname, email, phone, password };
+                console.log('Request body:', requestBody);
+                
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                // Attempt to parse server response
+                let data = {};
+                try { 
+                    data = await response.json(); 
+                    console.log('Response data:', data);
+                } catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                    showError('password', 'Registration failed. Please try again.');
+                    return;
+                }
+
+                if (response.ok) {
+                    // Registration successful - cache submitted user data for immediate use
+                    try {
+                        localStorage.setItem('userData', JSON.stringify({
+                            fullname,
+                            email,
+                            phone,
+                            createdAt: new Date().toISOString()
+                        }));
+                    } catch (_) {}
+                    alert('Registration successful! Please login with your credentials.');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // Show specific validation errors inline
+                const message = (data && data.message) ? data.message : 'Registration failed';
+                const lower = message.toLowerCase();
+                
+                if (lower.includes('exist')) { // user already exists
+                    showError('email', message);
+                    return;
+                }
+                if (lower.includes('phone')) { // phone validation error
+                    showError('phone', message);
+                    return;
+                }
+                if (lower.includes('email')) { // any other email-related server error
+                    showError('email', message);
+                    return;
+                }
+
+                // Fallback generic error under top field
+                showError('password', message);
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('password', 'Registration failed. Please try again. Check your internet connection.');
+            }
+        });
+
+        // OTP functionality (now uses email)
+        let otpVerified = false;
+        let identifierEmail = '';
+
+        // Send OTP button click handler (sends OTP to email)
+        document.getElementById('sendOtpBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+
+            if (!email) {
+                showError('email', 'Please enter an email first');
+                return;
+            }
+
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('email', 'Please enter a valid email address');
+                return;
+            }
+
+            try {
+                const sendOtpBtn = document.getElementById('sendOtpBtn');
+                sendOtpBtn.disabled = true;
+                sendOtpBtn.textContent = 'Sending...';
+
+                console.log('Sending OTP request for email:', email);
+                const response = await fetch('/api/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+                console.log('OTP response status:', response.status);
+                console.log('OTP response headers:', [...response.headers.entries()]);
+
+                const data = await response.json();
+                console.log('OTP response data:', data);
+
+                if (response.ok && data.success) {
+                    identifierEmail = email;
+                    document.getElementById('otpGroup').style.display = 'block';
+                    showError('email', ''); // Clear any previous errors
+
+                    if (data.devMode) {
+                        alert('OTP generated successfully! Check the server console or response for the 6-digit code.');
+                    } else {
+                        alert('OTP sent successfully! Check your email for the 6-digit code.');
+                    }
+                } else {
+                    showError('email', data.error || 'Failed to send OTP. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error sending OTP:', error);
+                console.error('Full error details:', error);
+                showError('email', 'Failed to send OTP. Please check your internet connection.');
+            } finally {
+                const sendOtpBtn = document.getElementById('sendOtpBtn');
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.textContent = 'Send OTP';
+            }
+        });
+
+        // Verify OTP button click handler
+        document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
+            const otpCode = document.getElementById('otpCode').value.trim();
+
+            if (!otpCode) {
+                showError('otpCode', 'Please enter the OTP code');
+                return;
+            }
+
+            if (!/^\d{6}$/.test(otpCode)) {
+                showError('otpCode', 'Please enter a valid 6-digit OTP code');
+                return;
+            }
+
+            try {
+                const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+                verifyOtpBtn.disabled = true;
+                verifyOtpBtn.textContent = 'Verifying...';
+
+                const response = await fetch('/api/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: identifierEmail, code: otpCode })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    otpVerified = true;
+                    showError('otpCode', ''); // Clear any previous errors
+                    document.getElementById('otpCode').classList.add('otp-verified');
+                    verifyOtpBtn.textContent = '✓ Verified';
+                    verifyOtpBtn.classList.add('otp-verified-btn');
+                    verifyOtpBtn.disabled = true;
+
+                    // Mark email input as verified (green outline) and clear any red outline
+                    const emailInput = document.getElementById('email');
+                    const emailErr = document.getElementById('emailError');
+                    if (emailErr) {
+                        emailErr.textContent = '';
+                        emailErr.style.display = 'none';
+                    }
+                    if (emailInput) {
+                        emailInput.classList.remove('error');
+                        emailInput.classList.add('otp-verified');
+                    }
+
+                    if (data.devMode) {
+                        alert('Email verified successfully! (Development Mode)');
+                    } else {
+                        alert('Email verified successfully!');
+                    }
+                } else {
+                    showError('otpCode', data.message || 'Invalid OTP code. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error verifying OTP:', error);
+                showError('otpCode', 'Failed to verify OTP. Please check your internet connection.');
+            } finally {
+                if (!otpVerified) {
+                    const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+                    verifyOtpBtn.disabled = false;
+                    verifyOtpBtn.textContent = 'Verify OTP';
+                }
+            }
+        });
+
+        // Update form submission to include OTP verification
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Reset previous errors
+            clearErrors();
+
+            const fullname = document.getElementById('fullname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const otpCode = document.getElementById('otpCode').value.trim();
+
+            // Validate all fields
+            const isFullnameValid = validateField('fullname', fullname);
+            const isEmailValid = validateField('email', email);
+            const isPhoneValid = validateField('phone', phone);
+            const isPasswordValid = validateField('password', password);
+            const isConfirmPasswordValid = validateField('confirmPassword', confirmPassword, password);
+
+            if (!isFullnameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+                return;
+            }
+
+            // Check if OTP is verified
+            if (!otpVerified) {
+                showError('otpCode', 'Please verify your email with OTP before registering');
+                return;
+            }
+
+            try {
+                console.log('Sending registration request...');
+                const requestBody = { fullname, email, phone, password, otpCode };
+                console.log('Request body:', requestBody);
+                
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                // Attempt to parse server response
+                let data = {};
+                try { 
+                    data = await response.json(); 
+                    console.log('Response data:', data);
+                } catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                    showError('password', 'Registration failed. Please try again.');
+                    return;
+                }
+
+                if (response.ok) {
+                    // Registration successful - redirect to login
+                    alert('Registration successful! Please login with your credentials.');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // Show specific validation errors inline
+                const message = (data && data.message) ? data.message : 'Registration failed';
+                const lower = message.toLowerCase();
+                
+                if (lower.includes('exist')) { // user already exists
+                    showError('email', message);
+                    return;
+                }
+                if (lower.includes('phone')) { // phone validation error
+                    showError('phone', message);
+                }
+                if (lower.includes('otp')) { // OTP validation error
+                    showError('otpCode', message);
+                }
+                if (lower.includes('email')) { // any other email-related server error
+                    showError('email', message);
+                }
+
+                // Fallback generic error under top field
+                if (!lower.includes('phone') && !lower.includes('otp') && !lower.includes('email')) {
+                    showError('password', message);
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('password', 'Registration failed. Please try again. Check your internet connection.');
+            }
+        });
+
+        // Clear any stored values when the page loads
+        window.addEventListener('load', () => {
+            document.getElementById('registerForm').reset();
+            otpVerified = false;
+            phoneNumber = '';
+            document.getElementById('otpGroup').style.display = 'none';
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Booking Requests - RideShare</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css">
+
+    <style>
+        .requests-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .request-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .request-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .status-icon.accepted {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-icon.rejected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-icon.pending {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .request-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .request-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+        }
+
+        .detail-item i {
+            color: #3498db;
+            width: 20px;
+        }
+
+        .request-message {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            color: #2c3e50;
+        }
+
+        .request-message.accepted {
+            background: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .request-message.rejected {
+            background: #ffebee;
+            border-left: 4px solid #c62828;
+        }
+
+        .request-message.pending {
+            background: #fff3e0;
+            border-left: 4px solid #ef6c00;
+        }
+
+        .no-requests {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-requests i {
+            font-size: 3rem;
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .simple-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #2c3e50;
+            color: #fff;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .simple-header .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .simple-header nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .simple-header .nav-link {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .simple-header .nav-link:hover {
+            color: #f1c40f;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge.accepted {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-badge.rejected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-badge.pending {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status-badge.cancelled {
+            background: #f5f5f5;
+            color: #757575;
+        }
+
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .toast.info {
+            background: #17a2b8;
+        }
+
+        /* Add specific styles for the notification badge to ensure it displays correctly */
+        #notificationBadge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        #notificationBadge.show {
+            display: flex !important;
+        }
+
+        /* Action buttons for accepted requests */
+        .request-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem; /* keep larger size */
+            border-radius: 6px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+        }
+        .btn-action.go { background: #2ecc71; }
+        .btn-action.track { background: #3498db; }
+        .btn-action.cancel { background: #e74c3c; }
+
+        /* Cancel reason label hover effect */
+        .cancel-reason-label:hover {
+            border-color: #e74c3c !important;
+            background-color: #fff5f5;
+        }
+
+        .cancel-reason-label input[type="radio"]:checked + span {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .cancel-reason-label:has(input[type="radio"]:checked) {
+            border-color: #e74c3c !important;
+            background-color: #fff5f5;
+        }
+    </style>
+</head>
+<body>
+    <header class="simple-header">
+        <div class="logo">
+            <i class="fas fa-car"></i> RideShare
+        </div>
+        <nav>
+            <a href="Passanger.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+            <a href="profile.html" class="nav-link"><i class="fas fa-user"></i> Profile</a>
+            <a href="#" class="nav-link" id="notificationIndicator" style="position: relative;">
+                <i class="fas fa-bell"></i> Notifications
+                <span id="notificationBadge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center;">0</span>
+            </a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="requests-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1>My Booking Requests</h1>
+                <button onclick="loadRequests()" class="btn" style="background: #3498db; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading your booking requests...</p>
+            </div>
+            <div id="requestsList">
+                <!-- Request cards will be populated here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Let's Go Together Modal -->
+    <div id="letsGoModal" class="modal" style="display:none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: #fff; margin: 8% auto; padding: 1.25rem; border-radius: 8px; width: 90%; max-width: 520px; position: relative;">
+            <div style="display:flex; justify-content: center; align-items:center; margin-bottom: 0.75rem; position: relative;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <i class="fas fa-users" style="color:#2ecc71; font-size: 1.25rem;"></i>
+                    <h3 style="margin:0; color:#1f2d3d; font-size: 1.5rem; font-weight: 700;">Let's Go Together!</h3>
+                </div>
+                <span id="letsGoClose" style="position:absolute; right:0; top:0; cursor:pointer; font-size: 1.25rem; color:#888">&times;</span>
+            </div>
+            <div id="letsGoBody" style="display: grid; gap: 0.75rem;"></div>
+        </div>
+    </div>
+
+    <!-- Track Ride Modal -->
+    <div id="trackModal" class="modal" style="display:none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: #fff; margin: 8% auto; padding: 1.25rem; border-radius: 8px; width: 90%; max-width: 520px; position: relative;">
+            <div style="display:flex; justify-content: center; align-items:center; margin-bottom: 0.75rem; position: relative;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <i class="fas fa-route" style="color:#1f2d3d; font-size: 1.25rem;"></i>
+                    <h3 style="margin:0; color:#1f2d3d; font-size: 1.5rem; font-weight: 700;">Track Your Ride</h3>
+                </div>
+            </div>
+            <div id="trackBody" style="display: grid; gap: 0.75rem;"></div>
+        </div>
+    </div>
+
+    <!-- Cancel Ride Modal -->
+    <div id="cancelModal" class="modal" style="display:none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: #fff; margin: 8% auto; padding: 1.5rem; border-radius: 8px; width: 90%; max-width: 500px; position: relative;">
+            <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 1rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <i class="fas fa-times-circle" style="color:#e74c3c; font-size: 1.25rem;"></i>
+                    <h3 style="margin:0; color:#2c3e50; font-size: 1.5rem; font-weight: 700;">Cancel Ride</h3>
+                </div>
+                <span id="cancelClose" style="cursor:pointer; font-size: 1.5rem; color:#888; font-weight: bold;">&times;</span>
+            </div>
+            <p style="color:#666; margin-bottom: 1.5rem;">Please select a reason for cancelling this ride:</p>
+            <form id="cancelForm">
+                <div style="display: grid; gap: 0.75rem; margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: center; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: all 0.2s;" class="cancel-reason-label">
+                        <input type="radio" name="cancelReason" value="Change of plans" required style="margin-right: 0.75rem;">
+                        <span style="color:#2c3e50; font-weight: 500;">Change of plans</span>
+                    </label>
+                    <label style="display: flex; align-items: center; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: all 0.2s;" class="cancel-reason-label">
+                        <input type="radio" name="cancelReason" value="Found alternative transportation" required style="margin-right: 0.75rem;">
+                        <span style="color:#2c3e50; font-weight: 500;">Found alternative transportation</span>
+                    </label>
+                    <label style="display: flex; align-items: center; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: all 0.2s;" class="cancel-reason-label">
+                        <input type="radio" name="cancelReason" value="Schedule conflict" required style="margin-right: 0.75rem;">
+                        <span style="color:#2c3e50; font-weight: 500;">Schedule conflict</span>
+                    </label>
+                    <label style="display: flex; align-items: center; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: all 0.2s;" class="cancel-reason-label">
+                        <input type="radio" name="cancelReason" value="Price concerns" required style="margin-right: 0.75rem;">
+                        <span style="color:#2c3e50; font-weight: 500;">Price concerns</span>
+                    </label>
+                    <label style="display: flex; align-items: center; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: all 0.2s;" class="cancel-reason-label">
+                        <input type="radio" name="cancelReason" value="Emergency" required style="margin-right: 0.75rem;">
+                        <span style="color:#2c3e50; font-weight: 500;">Emergency</span>
+                    </label>
+                    <label style="display: flex; align-items: center; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; cursor: pointer; transition: all 0.2s;" class="cancel-reason-label">
+                        <input type="radio" name="cancelReason" value="Other" required style="margin-right: 0.75rem;">
+                        <span style="color:#2c3e50; font-weight: 500;">Other</span>
+                    </label>
+                </div>
+                <div id="otherReasonDiv" style="display: none; margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color:#2c3e50; font-weight: 500;">Please specify:</label>
+                    <textarea id="otherReasonText" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; font-family: inherit; resize: vertical;" placeholder="Enter your reason..."></textarea>
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                    <button type="button" class="btn-action" style="background: #95a5a6; padding: 0.75rem 1.5rem; font-size: 14px;" onclick="closeCancelModal()">
+                        <i class="fas fa-arrow-left"></i> Go Back
+                    </button>
+                    <button type="submit" class="btn-action cancel" style="padding: 0.75rem 1.5rem; font-size: 14px;">
+                        <i class="fas fa-check"></i> Confirm Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div id="ratingModal" class="modal" style="display:none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: #fff; margin: 8% auto; padding: 2rem; border-radius: 12px; width: 90%; max-width: 500px; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 1.5rem;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <i class="fas fa-star" style="color:#f39c12; font-size: 1.5rem;"></i>
+                    <h3 style="margin:0; color:#2c3e50; font-size: 1.5rem; font-weight: 700;">Rate Your Driver</h3>
+                </div>
+                <span id="ratingClose" style="cursor:pointer; font-size: 1.75rem; color:#888; font-weight: bold;" onclick="closeRatingModal()">&times;</span>
+            </div>
+            
+            <div id="ratingDriverName" style="font-size: 1.1rem; color: #666; margin-bottom: 1.5rem; text-align: center;"></div>
+            
+            <!-- Star Rating -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <p style="color: #666; margin-bottom: 1rem; font-weight: 500;">How was your experience?</p>
+                <div id="starRating" style="font-size: 3rem; cursor: pointer;">
+                    <i class="far fa-star" data-rating="1"></i>
+                    <i class="far fa-star" data-rating="2"></i>
+                    <i class="far fa-star" data-rating="3"></i>
+                    <i class="far fa-star" data-rating="4"></i>
+                    <i class="far fa-star" data-rating="5"></i>
+                </div>
+                <div id="ratingText" style="color: #f39c12; font-weight: 600; margin-top: 0.5rem; min-height: 1.5rem;"></div>
+            </div>
+            
+            <!-- Review Text -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color:#2c3e50; font-weight: 500;">Share your experience (optional):</label>
+                <textarea id="reviewText" rows="4" style="width: 100%; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px; font-family: inherit; resize: vertical;" placeholder="Tell us about your ride..."></textarea>
+            </div>
+            
+            <!-- Submit Button -->
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" class="btn-action" style="background: #95a5a6; padding: 0.75rem 1.5rem; font-size: 14px;" onclick="closeRatingModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" id="submitRatingBtn" class="btn-action go" style="background: #f39c12; padding: 0.75rem 1.5rem; font-size: 14px;" onclick="submitRating()">
+                    <i class="fas fa-paper-plane"></i> Submit Rating
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let refreshInterval;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRequests();
+            // Set up automatic refresh every 30 seconds
+            refreshInterval = setInterval(loadRequests, 30000);
+
+            // Handle cancel modal close button
+            document.getElementById('cancelClose').onclick = closeCancelModal;
+
+            // Show/hide other reason text field
+            document.addEventListener('change', function(e) {
+                if (e.target.name === 'cancelReason') {
+                    const otherReasonDiv = document.getElementById('otherReasonDiv');
+                    if (e.target.value === 'Other') {
+                        otherReasonDiv.style.display = 'block';
+                    } else {
+                        otherReasonDiv.style.display = 'none';
+                    }
+                }
+            });
+
+            // Handle cancel form submission
+            document.getElementById('cancelForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('Please login to cancel booking');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const selectedReason = document.querySelector('input[name="cancelReason"]:checked');
+                if (!selectedReason) {
+                    showToast('Please select a reason for cancellation', 'error');
+                    return;
+                }
+
+                let cancelReason = selectedReason.value;
+                if (cancelReason === 'Other') {
+                    const otherReasonText = document.getElementById('otherReasonText').value.trim();
+                    if (!otherReasonText) {
+                        showToast('Please specify your reason for cancellation', 'error');
+                        return;
+                    }
+                    cancelReason = otherReasonText;
+                }
+
+                try {
+                    const response = await fetch(`/api/booking-requests/${currentCancelRequestId}/cancel`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ reason: cancelReason })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Failed to cancel booking');
+                    }
+
+                    showToast('Booking cancelled successfully', 'success');
+                    closeCancelModal();
+                    
+                    // Trigger rider notification badge
+                    triggerRiderNotification();
+                    
+                    // Reload the requests to update the list
+                    loadRequests();
+                } catch (error) {
+                    console.error('Error cancelling booking:', error);
+                    showToast(error.message || 'Failed to cancel booking. Please try again.', 'error');
+                }
+            });
+
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                const cancelModal = document.getElementById('cancelModal');
+                if (event.target === cancelModal) {
+                    closeCancelModal();
+                }
+            });
+        });
+
+        // Clean up interval when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Hide and remove toast
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Play notification sound function
+        function playNotificationSound() {
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+                audio.volume = 0.3;
+                audio.play().catch(() => {}); // Ignore errors if audio fails
+            } catch (e) {
+                // Ignore audio errors
+            }
+        }
+
+        // Store previous requests to detect changes
+        let previousRequests = [];
+        let lastCheckTime = Date.now();
+
+        async function loadRequests() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            const loading = document.querySelector('.loading');
+            const requestsList = document.getElementById('requestsList');
+            
+            loading.style.display = 'block';
+            requestsList.innerHTML = '';
+
+            try {
+                // Fetch booking requests for the logged-in user
+                const response = await fetch('/api/booking-requests/user', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                // Check if the response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.error('Invalid content type:', contentType);
+                    throw new Error('Server returned non-JSON response');
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch booking requests');
+                }
+
+                const requests = await response.json();
+                console.log('Booking requests:', requests);
+                console.log('First request (if exists):', requests[0]);
+                if (requests[0] && requests[0].ride) {
+                    console.log('First request ride object:', requests[0].ride);
+                    console.log('First request ride._id:', requests[0].ride._id);
+                }
+
+                if (!Array.isArray(requests)) {
+                    console.error('Invalid response format:', requests);
+                    throw new Error('Invalid response format from server');
+                }
+
+                // Check for status changes and show notifications
+                let newNotifications = 0;
+                let rideCompleted = false;
+                
+                if (previousRequests.length > 0) {
+                    requests.forEach(request => {
+                        const previousRequest = previousRequests.find(prev => prev._id === request._id);
+                        
+                        // Check for status changes
+                        if (previousRequest && previousRequest.status !== request.status) {
+                            // Status changed - show notification
+                            newNotifications++;
+                            if (request.status === 'accepted') {
+                                showToast('🎉 Your booking request has been accepted! Check your email/SMS for details.', 'success');
+                                // Play notification sound
+                                playNotificationSound();
+                            } else if (request.status === 'rejected') {
+                                showToast('❌ Your booking request has been rejected.', 'error');
+                                // Play notification sound
+                                playNotificationSound();
+                            }
+                        }
+                        
+                        // Check for ride completion
+                        if (request.ride && request.ride.status === 'completed' && 
+                            previousRequest && previousRequest.ride && previousRequest.ride.status !== 'completed') {
+                            rideCompleted = true;
+                            newNotifications++;
+                            showToast('✅ Your ride has been completed! Please rate your driver.', 'success');
+                            playNotificationSound();
+                            // Set flag in localStorage for the main page notification
+                            localStorage.setItem('rideCompletedNotification', 'true');
+                        }
+                    });
+                }
+                
+                // Also check for any currently completed rides (on first load or refresh)
+                if (previousRequests.length === 0) {
+                    requests.forEach(request => {
+                        if (request.ride && request.ride.status === 'completed') {
+                            rideCompleted = true;
+                            // Set flag in localStorage for the main page notification
+                            localStorage.setItem('rideCompletedNotification', 'true');
+                        }
+                    });
+                }
+
+                // Check for new requests (requests created after last check)
+                requests.forEach(request => {
+                    const requestTime = new Date(request.createdAt).getTime();
+                    if (requestTime > lastCheckTime && !previousRequests.find(prev => prev._id === request._id)) {
+                        newNotifications++;
+                        showToast('📝 New booking request created!', 'info');
+                        playNotificationSound();
+                    }
+                });
+
+                // Update notification badge
+                const notificationBadge = document.getElementById('notificationBadge');
+                if (newNotifications > 0) {
+                    notificationBadge.textContent = rideCompleted ? '1' : newNotifications;
+                    notificationBadge.classList.add('show');
+                    // Hide badge after 5 seconds
+                    setTimeout(() => {
+                        notificationBadge.classList.remove('show');
+                        // Clear ride completion flag if it was set
+                        if (rideCompleted) {
+                            localStorage.removeItem('rideCompletedNotification');
+                        }
+                    }, 5000);
+                } else {
+                    // Check if there's a ride completion notification from localStorage
+                    if (localStorage.getItem('rideCompletedNotification')) {
+                        notificationBadge.textContent = '1';
+                        notificationBadge.classList.add('show');
+                        // Hide badge after 5 seconds
+                        setTimeout(() => {
+                            notificationBadge.classList.remove('show');
+                            localStorage.removeItem('rideCompletedNotification');
+                        }, 5000);
+                    }
+                }
+
+                // Update previous requests and last check time
+                previousRequests = requests;
+                lastCheckTime = Date.now();
+
+                if (requests.length === 0) {
+                    requestsList.innerHTML = `
+                        <div class="no-requests">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>No Booking Requests</h3>
+                            <p>You haven't made any booking requests yet.</p>
+                            <a href="/search" class="btn">Find Rides</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Sort requests by date (newest first)
+                requests.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                // Group requests by status
+                const groupedRequests = {
+                    accepted: [],
+                    rejected: [],
+                    pending: [],
+                    cancelled: []
+                };
+
+                requests.forEach(request => {
+                    if (request.status && request.ride) {
+                        groupedRequests[request.status].push(request);
+                    }
+                });
+
+                // Clear previous content
+                requestsList.innerHTML = '';
+
+                // Display requests by status
+                if (groupedRequests.accepted.length > 0) {
+                    const acceptedSection = document.createElement('div');
+                    acceptedSection.innerHTML = '<h2>Accepted Requests</h2>';
+                    groupedRequests.accepted.forEach(request => {
+                        acceptedSection.appendChild(createRequestCard(request));
+                    });
+                    requestsList.appendChild(acceptedSection);
+                }
+
+                if (groupedRequests.pending.length > 0) {
+                    const pendingSection = document.createElement('div');
+                    pendingSection.innerHTML = '<h2>Pending Requests</h2>';
+                    groupedRequests.pending.forEach(request => {
+                        pendingSection.appendChild(createRequestCard(request));
+                    });
+                    requestsList.appendChild(pendingSection);
+                }
+
+                if (groupedRequests.rejected.length > 0) {
+                    const rejectedSection = document.createElement('div');
+                    rejectedSection.innerHTML = '<h2>Rejected Requests</h2>';
+                    groupedRequests.rejected.forEach(request => {
+                        rejectedSection.appendChild(createRequestCard(request));
+                    });
+                    requestsList.appendChild(rejectedSection);
+                }
+
+                if (groupedRequests.cancelled.length > 0) {
+                    const cancelledSection = document.createElement('div');
+                    cancelledSection.innerHTML = '<h2>Cancelled Requests</h2>';
+                    groupedRequests.cancelled.forEach(request => {
+                        cancelledSection.appendChild(createRequestCard(request));
+                    });
+                    requestsList.appendChild(cancelledSection);
+                }
+
+            } catch (error) {
+                console.error('Error loading requests:', error);
+                requestsList.innerHTML = `
+                    <div class="no-requests">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Error Loading Requests</h3>
+                        <p>${error.message || 'Failed to load booking requests. Please try again later.'}</p>
+                        <button onclick="loadRequests()" class="btn" style="margin-top: 1rem;">
+                            <i class="fas fa-sync-alt"></i> Retry
+                        </button>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function createRequestCard(request) {
+            const card = document.createElement('div');
+            card.className = 'request-card';
+
+            const statusIcon = request.status === 'accepted' ? 'check-circle' : 
+                             request.status === 'rejected' ? 'times-circle' : 'clock';
+            const statusClass = request.status;
+            
+            // Get status message based on request status
+            let statusMessage = request.driverMessage || '';
+            if (!statusMessage) {
+                switch(request.status) {
+                    case 'accepted':
+                        statusMessage = 'Your booking request has been accepted by the driver!';
+                        break;
+                    case 'rejected':
+                        statusMessage = 'Your booking request has been rejected by the driver.';
+                        break;
+                    default:
+                        statusMessage = 'Your booking request is pending driver approval.';
+                }
+            }
+
+            // Get ride details from the request
+            const ride = request.ride;
+
+            if (!ride) {
+                return card; // Return empty card if no ride details
+            }
+
+            // Debug logging
+            console.log('Creating card for request:', request);
+            console.log('Ride object:', ride);
+            console.log('Ride ID:', ride._id);
+            console.log('Request rideId (fallback):', request.rideId);
+
+            // Get the actual ride ID - try ride._id first, then fall back to request.rideId
+            const actualRideId = (ride && ride._id) ? ride._id : (request.rideId || '');
+            console.log('Actual ride ID to use:', actualRideId);
+
+            card.innerHTML = `
+                <div class="request-header">
+                    <div class="status-icon ${statusClass}">
+                        <i class="fas fa-${statusIcon}"></i>
+                    </div>
+                    <div class="request-title">
+                        ${statusMessage}
+                        <span class="status-badge ${statusClass}">${request.status.toUpperCase()}</span>
+                    </div>
+                </div>
+                <div class="request-details">
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${ride.from} → ${ride.to}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>${new Date(ride.date).toLocaleDateString()}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-clock"></i>
+                        <span>${ride.time}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-chair"></i>
+                        <span>${request.seatsBooked} seats</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-rupee-sign"></i>
+                        <span>₹${ride.price} per seat</span>
+                    </div>
+                </div>
+                ${request.status === 'accepted' ? `
+                    <div class="request-message accepted">
+                        <p><strong>Driver Details:</strong></p>
+                        <p>Name: ${ride.driverName}</p>
+                        <p>Phone: ${ride.driverPhone}</p>
+                        <p>Vehicle: ${ride.vehicleType} - ${ride.vehicleModel} (${ride.vehicleNumber})</p>
+                        ${ride.totalRatings > 0 ? `
+                            <p style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="color: #f39c12; font-size: 1.1rem;">
+                                    <i class="fas fa-star"></i>
+                                    <strong>${ride.averageRating.toFixed(1)}</strong>
+                                </span>
+                                <span style="color: #666; font-size: 0.9rem;">(${ride.totalRatings} ${ride.totalRatings === 1 ? 'rating' : 'ratings'})</span>
+                            </p>
+                        ` : `
+                            <p style="margin-top: 0.5rem; color: #999; font-size: 0.9rem;">
+                                <i class="far fa-star"></i> No ratings yet
+                            </p>
+                        `}
+                    </div>
+                    ${ride.delayMinutes > 0 || ride.delayMessage ? `
+                        <div class="request-message" style="background: #fff3cd; border-left: 4px solid #f39c12;">
+                            <p><strong><i class="fas fa-clock"></i> Pickup Time Update:</strong></p>
+                            ${ride.delayMinutes > 0 ? `<p><i class="fas fa-exclamation-triangle"></i> Driver is running ${ride.delayMinutes} minutes late</p>` : ''}
+                            <p><i class="fas fa-clock"></i> Estimated Pickup Time: <strong>${ride.estimatedPickupTime || ride.time}</strong></p>
+                            ${ride.delayMessage ? `<p><i class="fas fa-comment"></i> Message: ${ride.delayMessage}</p>` : ''}
+                            ${ride.lastDelayUpdate ? `<p style="font-size: 0.85rem; color: #666;">Updated: ${new Date(ride.lastDelayUpdate).toLocaleString()}</p>` : ''}
+                        </div>
+                    ` : ''}
+                    ${ride.status === 'completed' ? `
+                        <!-- Completed Ride -->
+                        <div class="request-message" style="background: #e8f5e9; border-left: 4px solid #28a745;">
+                            <p><strong><i class="fas fa-check-circle" style="color: #28a745;"></i> Ride Completed!</strong></p>
+                            <p style="color: #2e7d32;">Thank you for traveling with us!</p>
+                        </div>
+                        ${request.rated ? `
+                            <!-- Show Rating Info -->
+                            <div class="request-message" style="background: #fff3cd; border-left: 4px solid #f39c12;">
+                                <p style="margin: 0; margin-bottom: 0.75rem;"><strong><i class="fas fa-star" style="color: #f39c12;"></i> Your Rating</strong></p>
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                                    <div style="font-size: 2rem; color: #f39c12;">
+                                        ${Array(request.ratingValue).fill('<i class="fas fa-star"></i>').join('')}
+                                        ${Array(5 - request.ratingValue).fill('<i class="far fa-star"></i>').join('')}
+                                    </div>
+                                    <div style="font-size: 1.25rem; font-weight: bold; color: #f39c12;">
+                                        ${request.ratingValue}/5 Stars
+                                    </div>
+                                </div>
+                                ${request.ratingReview ? `
+                                    <div style="background: white; padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem;">
+                                        <p style="margin: 0; color: #666; font-style: italic;">"${request.ratingReview}"</p>
+                                    </div>
+                                ` : ''}
+                                <p style="margin: 0.5rem 0 0 0; color: #856404; font-size: 0.9rem;">
+                                    <i class="fas fa-check-circle"></i> Thank you for your feedback!
+                                </p>
+                            </div>
+                        ` : `
+                            <!-- Show Rate Driver Button -->
+                            <div class="request-actions">
+                                <button class="btn-action go" onclick="openRatingModal('${ride._id}', '${ride.driverName}', '${request._id}')" style="background: #f39c12;">
+                                    <i class="fas fa-star"></i>
+                                    <span>Rate Driver</span>
+                                </button>
+                            </div>
+                        `}
+                    ` : `
+                        <!-- Active Ride - Show Actions -->
+                        <div class="request-actions">
+                            <button class="btn-action go" onclick="openLetsGoModal('${ride.driverName}','${ride.driverPhone}','${ride.from}','${ride.to}','${ride.date}','${ride.time}','${ride.vehicleType}','${ride.vehicleNumber}','${ride.driverGender || ''}', ${ride.delayMinutes || 0}, '${ride.estimatedPickupTime || ride.time}', '${ride.delayMessage || ''}')">
+                                <i class="fas fa-users"></i>
+                                <span>Let's go together</span>
+                            </button>
+                            <button class="btn-action track" onclick="trackRide('${actualRideId}')">
+                                <i class="fas fa-route"></i>
+                                <span>View Route</span>
+                            </button>
+                            <button class="btn-action cancel" onclick="cancelBooking('${request._id}')">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Cancel Ride</span>
+                            </button>
+                        </div>
+                    `}
+                ` : ''}
+                ${request.driverMessage ? `
+                    <div class="request-message ${request.status}">
+                        <p><strong>Driver's Message:</strong></p>
+                        <p>${request.driverMessage}</p>
+                    </div>
+                ` : ''}
+                <div class="request-message">
+                    <p><strong>Request Date:</strong> ${new Date(request.createdAt).toLocaleString()}</p>
+                </div>
+            `;
+
+            return card;
+        }
+        function openLetsGoModal(driverName, driverPhone, from, to, date, time) {
+            const body = document.getElementById('letsGoBody');
+            const formattedDate = new Date(date).toLocaleDateString();
+            // Accept all arguments, fallback for missing ones
+            const args = arguments;
+            const vehicleType = args.length > 6 ? args[6] : '';
+            const vehicleNumber = args.length > 7 ? args[7] : '';
+            const driverGender = args.length > 8 ? args[8] : '';
+            const delayMinutes = args.length > 9 ? parseInt(args[9]) : 0;
+            const estimatedPickupTime = args.length > 10 ? args[10] : time;
+            const delayMessage = args.length > 11 ? args[11] : '';
+            
+            console.log('Delay Info:', { delayMinutes, estimatedPickupTime, delayMessage }); // Debug log
+            
+            body.innerHTML = `
+                <div style="display:grid; gap: 0.75rem;">
+                    <!-- Ride Confirmation Title -->
+                    <div style="font-weight:700; color:#2c3e50;">Ride Confirmation</div>
+
+                    <!-- Route -->
+                    <div>
+                        <div style="font-weight:600; color:#2c3e50;">Route</div>
+                        <div style="color:#666;">${from} → ${to}</div>
+                    </div>
+
+                    <!-- Date -->
+                    <div>
+                        <div style="font-weight:600; color:#2c3e50;">Date</div>
+                        <div style="color:#666;">${formattedDate}</div>
+                    </div>
+
+                    <!-- Original Time -->
+                    <div>
+                        <div style="font-weight:600; color:#2c3e50;">Original Time</div>
+                        <div style="color:#666;">${time}</div>
+                    </div>
+                    
+                    ${delayMinutes !== 0 || delayMessage ? `
+                        <!-- Delay Alert Box -->
+                        <div style="display:flex; align-items:center; gap:0.5rem; background:#fff3cd; padding:0.75rem; border-radius:6px; border-left: 4px solid #f39c12;">
+                            <i class="fas fa-clock" style="color:#f39c12; font-size: 1.5rem;"></i>
+                            <div style="flex:1;">
+                                <div style="font-weight:700; color:#2c3e50;">⏰ Pickup Time Update</div>
+                                ${delayMinutes > 0 ? `<div style="color:#856404; margin-top:0.25rem;"><strong>Driver is running ${delayMinutes} minutes late</strong></div>` : ''}
+                                ${delayMinutes < 0 ? `<div style="color:#155724; margin-top:0.25rem;"><strong>Driver will arrive ${Math.abs(delayMinutes)} minutes early</strong></div>` : ''}
+                                <div style="color:#856404; margin-top:0.25rem;">New Pickup Time: <strong>${estimatedPickupTime}</strong></div>
+                                ${delayMessage ? `<div style="color:#856404; margin-top:0.5rem; font-style:italic;">💬 "${delayMessage}"</div>` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Driver -->
+                    <div>
+                        <div style="font-weight:600; color:#2c3e50;">Driver</div>
+                        <div style="color:#666;">${driverName}</div>
+                    </div>
+
+                    <!-- Gender -->
+                    <div>
+                        <div style="font-weight:600; color:#2c3e50;">Gender</div>
+                        <div style="color:#666;">${typeof driverGender !== 'undefined' && driverGender !== null && driverGender !== '' ? driverGender : 'N/A'}</div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div>
+                        <div style="font-weight:600; color:#2c3e50;">Phone</div>
+                        <div style="color:#666;">${driverPhone}</div>
+                    </div>
+
+                    <!-- Vehicle -->
+                    <div>
+                        <div style="font-weight:600; color:#2c3e50;">Vehicle</div>
+                        <div style="color:#666;">${typeof vehicleType !== 'undefined' && vehicleType !== null && vehicleType !== '' ? vehicleType : 'N/A'}</div>
+                    </div>
+
+                    <!-- Vehicle Number -->
+                    <div>
+                        <div style="font-weight:600; color:#2c3e50;">Vehicle Number</div>
+                        <div style="color:#666;">${typeof vehicleNumber !== 'undefined' && vehicleNumber !== null && vehicleNumber !== '' ? vehicleNumber : 'N/A'}</div>
+                    </div>
+
+                    <!-- Status -->
+                    <div style="display:flex; align-items:center; gap:0.5rem; background:#e8f5e9; padding:0.75rem; border-radius:6px;">
+                        <i class="fas fa-check-circle" style="color:#2e7d32;"></i>
+                        <div>
+                            <div style="font-weight:700; color:#2c3e50;">Status</div>
+                            <div style="color:#2e7d32;">Your ride is confirmed! Get ready for your ride</div>
+                        </div>
+                    </div>
+
+                    <!-- Reminder -->
+                    <div style="display:flex; align-items:center; gap:0.5rem; background:#fff7e6; padding:0.75rem; border-radius:6px;">
+                        <i class="fas fa-bell" style="color:#f39c12;"></i>
+                        <div>
+                            <div style="font-weight:700; color:#2c3e50;">Reminder</div>
+                            <div style="color:#b36b00;">Please arrive at the pickup location 10 minutes before departure time</div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div style="display:flex; justify-content:flex-start; gap:0.5rem; margin-top:0.5rem;">
+                        <a href="tel:${driverPhone}" class="btn-action go" style="text-decoration:none; padding: 0.5rem 0.75rem; font-size: 14px;">
+                            <i class="fas fa-phone-alt"></i> Call Driver
+                        </a>
+                        <button class="btn-action track" style="background:#95a5a6; padding: 0.5rem 0.75rem; font-size: 14px;" onclick="closeLetsGoModal()">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('letsGoModal').style.display = 'block';
+            document.getElementById('letsGoClose').onclick = closeLetsGoModal;
+        }
+
+        function closeLetsGoModal() {
+            document.getElementById('letsGoModal').style.display = 'none';
+        }
+
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('letsGoModal');
+            if (e.target === modal) closeLetsGoModal();
+        });
+
+        function shareRideDetails(from, to, date, time, driverName, driverPhone) {
+            const text = `Ride details:%0AFrom: ${from}%0ATo: ${to}%0ADate: ${date}%0ATime: ${time}%0ADriver: ${driverName} (${driverPhone})`;
+            if (navigator.share) {
+                navigator.share({ title: 'Ride Details', text: text.replace(/%0A/g, '\n') }).catch(() => {});
+            } else {
+                const whatsappUrl = `https://wa.me/?text=${text}`;
+                window.open(whatsappUrl, '_blank');
+            }
+        }
+        function openTrackModal(from, to, date, time, driverName, driverPhone) {
+            const body = document.getElementById('trackBody');
+            const formattedDate = new Date(date).toLocaleDateString();
+            body.innerHTML = `
+                <div style="display:grid; gap: 0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div>
+                            <div style="font-weight:600; color:#2c3e50;">Route</div>
+                            <div style="color:#666;">${from} → ${to}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div>
+                            <div style="font-weight:600; color:#2c3e50;">Date</div>
+                            <div style="color:#666;">${formattedDate}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div>
+                            <div style="font-weight:600; color:#2c3e50;">Time</div>
+                            <div style="color:#666;">${time}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div>
+                            <div style="font-weight:600; color:#2c3e50;">Driver</div>
+                            <div style="color:#666;">${driverName}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div>
+                            <div style="font-weight:600; color:#2c3e50;">Phone</div>
+                            <div style="color:#666;">${driverPhone}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem; background:#e8f5e9; padding:0.75rem; border-radius:6px;">
+                        <i class="fas fa-check-circle" style="color:#2e7d32;"></i>
+                        <div>
+                            <div style="font-weight:600; color:#2c3e50;">Tracking Status</div>
+                            <div style="color:#2e7d32;">Your ride is confirmed and active!</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-start; gap:0.5rem; margin-top:0.5rem;">
+                        <a href="tel:${driverPhone}" class="btn-action go" style="text-decoration:none; padding: 0.5rem 0.75rem; font-size: 14px;">
+                            <i class="fas fa-phone-alt"></i> Call Driver
+                        </a>
+                        <button class="btn-action track" style="background:#95a5a6; padding: 0.5rem 0.75rem; font-size: 14px;" onclick="closeTrackModal()">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('trackModal').style.display = 'block';
+            
+        }
+        function closeTrackModal() {
+            document.getElementById('trackModal').style.display = 'none';
+        }
+
+        // Cancel booking function
+        let currentCancelRequestId = null;
+        
+        async function cancelBooking(requestId) {
+            currentCancelRequestId = requestId;
+            // Open the cancel modal instead of showing confirm dialog
+            document.getElementById('cancelModal').style.display = 'block';
+        }
+
+        // Close cancel modal
+        function closeCancelModal() {
+            document.getElementById('cancelModal').style.display = 'none';
+            document.getElementById('cancelForm').reset();
+            document.getElementById('otherReasonDiv').style.display = 'none';
+            currentCancelRequestId = null;
+        }
+
+        // Trigger rider notification badge when passenger cancels a ride
+        function triggerRiderNotification() {
+            console.log('🔴 Triggering rider cancellation notification');
+            // Clear the clicked flag so badge will appear for riders
+            localStorage.removeItem('riderNotificationClicked');
+            // Set a flag to indicate this is a cancellation notification
+            localStorage.setItem('riderNotificationType', 'cancellation');
+            console.log('✅ Set riderNotificationType to:', localStorage.getItem('riderNotificationType'));
+            console.log('✅ Rider notification badge activated - Ride cancellation');
+        }
+
+        // Function to handle tracking with validation
+        function trackRide(rideId) {
+            console.log('=== TRACK RIDE DEBUG ===');
+            console.log('Track ride called with ID:', rideId);
+            console.log('Type of rideId:', typeof rideId);
+            console.log('rideId length:', rideId ? rideId.length : 'N/A');
+            
+            if (!rideId || rideId === 'undefined' || rideId === 'null' || rideId === '' || rideId === 'false') {
+                alert('ERROR: Unable to track ride - Invalid ride ID\n\nPlease:\n1. Refresh this page (Ctrl+F5)\n2. Clear browser cache\n3. Try again\n\nIf issue persists, please contact support.');
+                console.error('Invalid ride ID for tracking:', rideId);
+                return;
+            }
+            
+            console.log('Navigating to:', `track-ride.html?rideId=${rideId}`);
+            // Navigate to tracking page
+            window.location.href = `track-ride.html?rideId=${rideId}`;
+        }
+
+        // Rating Modal Functions
+        let currentRatingData = {
+            rideId: null,
+            driverName: null,
+            requestId: null,
+            rating: 0
+        };
+
+        function openRatingModal(rideId, driverName, requestId) {
+            currentRatingData = { rideId, driverName, requestId, rating: 0 };
+            document.getElementById('ratingDriverName').textContent = `Rate ${driverName}`;
+            document.getElementById('reviewText').value = '';
+            document.getElementById('ratingText').textContent = '';
+            
+            // Reset stars
+            const stars = document.querySelectorAll('#starRating i');
+            stars.forEach(star => {
+                star.className = 'far fa-star';
+                star.style.color = '#ddd';
+            });
+            
+            // Setup star click events
+            stars.forEach(star => {
+                star.onclick = function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    currentRatingData.rating = rating;
+                    updateStars(rating);
+                };
+                
+                star.onmouseenter = function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    updateStars(rating, true);
+                };
+            });
+            
+            const starContainer = document.getElementById('starRating');
+            starContainer.onmouseleave = function() {
+                updateStars(currentRatingData.rating);
+            };
+            
+            document.getElementById('ratingModal').style.display = 'block';
+        }
+
+        function closeRatingModal() {
+            document.getElementById('ratingModal').style.display = 'none';
+            currentRatingData = { rideId: null, driverName: null, requestId: null, rating: 0 };
+        }
+
+        function updateStars(rating, isHover = false) {
+            const stars = document.querySelectorAll('#starRating i');
+            const ratingTexts = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+            
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.className = 'fas fa-star';
+                    star.style.color = '#f39c12';
+                } else {
+                    star.className = 'far fa-star';
+                    star.style.color = '#ddd';
+                }
+            });
+            
+            if (!isHover && rating > 0) {
+                document.getElementById('ratingText').textContent = ratingTexts[rating];
+            }
+        }
+
+        async function submitRating() {
+            if (currentRatingData.rating === 0) {
+                alert('Please select a star rating');
+                return;
+            }
+            
+            const review = document.getElementById('reviewText').value.trim();
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                alert('Please login to submit rating');
+                window.location.href = '/login';
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitRatingBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            
+            try {
+                const response = await fetch(`/api/rides/${currentRatingData.rideId}/rate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        rating: currentRatingData.rating,
+                        review: review,
+                        requestId: currentRatingData.requestId
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to submit rating');
+                }
+                
+                const result = await response.json();
+                showToast('⭐ Thank you for your rating!', 'success');
+                closeRatingModal();
+                
+                // Clear cached user data to force profile refresh
+                localStorage.removeItem('userData');
+                console.log('Rating submitted successfully. Profile data will refresh on next load.');
+                
+                // Set rating notification flag for the rider
+                console.log('Setting rating notification flag');
+                localStorage.setItem('ratingNotification', 'true');
+                console.log('Rating notification flag set:', localStorage.getItem('ratingNotification'));
+                
+                // Reload the requests to update UI
+                loadRequests();
+                
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+                showToast(error.message || 'Failed to submit rating', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Rating';
+            }
+        }
+
+        // Close rating modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const ratingModal = document.getElementById('ratingModal');
+            if (event.target === ratingModal) {
+                closeRatingModal();
+            }
+        });
+    </script>
+</body>
+</html> 
