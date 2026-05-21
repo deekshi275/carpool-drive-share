@@ -5,7 +5,7 @@ A full-stack carpooling web application that enables users to publish rides, sea
 This project is built for learning and demonstration purposes, showcasing a complete authentication flow, role-based features (driver/passenger), and ride management using a modern web stack.
 
 📌 Features
-
+a
 User Authentication
 
 Secure registration and login using JWT
